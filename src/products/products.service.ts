@@ -13,6 +13,8 @@ export class ProductsService {
   ){}
 
   async create(createProductDto: CreateProductDto) {
+    const productExists = await this.prisma.product.findFirst({where: {name: createProductDto.name}})
+    if(productExists) throw new RpcException({status: HttpStatus.CONFLICT, message: `Product with name ${createProductDto.name} already exists`})
     const product = await this.prisma.product.create({
       data: createProductDto
     })
@@ -48,11 +50,11 @@ export class ProductsService {
   async update(id: number, updateProductDto: UpdateProductDto) {
     const { id: __, ...data} = updateProductDto; 
     await this.findOne(id);
-    await this.prisma.product.update({
+    const updatedProduct = await this.prisma.product.update({
       where: {id},
       data
     })
-    return {message : "Product updated successfully"};
+    return {message : "Product updated successfully", updateProduct: updatedProduct};
   }
 
   async remove(id: number) {
