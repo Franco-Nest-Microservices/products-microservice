@@ -67,4 +67,14 @@ export class ProductsService {
     })
     return {message : "Product deleted successfully"};
   }
+
+  async validateProducts(ids: number[]){
+    // Evitar duplicados
+    ids = Array.from(new Set(ids));
+    const products = await this.prisma.product.findMany({where: {id: {in: ids}, available: true}})
+
+    if(products.length != ids.length) throw new RpcException({status: HttpStatus.BAD_REQUEST, message: `Some products were not found`})
+    
+    return products
+  }
 }
